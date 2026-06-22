@@ -9,7 +9,7 @@ import os
 
 dir = os.path.dirname(os.path.realpath(__file__))
 query_file = './query.sql'
-out_dir = './test'
+out_dir = './out'
 ts_fmt = '%m%d%Y_%H%M%S'
 
 def connectToDB() -> cx_Oracle.Connection:
@@ -75,7 +75,21 @@ def createFiles(rows: list[tuple[str, str, int, cx_Oracle.LOB]], dir: str):
         full_file = Path(os.path.join(file_dir, fname))
 
         # convert the oracle LOB object to a string
-        sql = row[3].read()
+        sql_raw = row[3].read()
+
+        # comment out :PIDM line
+        found_pidm = False
+        lines = []
+        for line in sql_raw.splitlines():
+            if ':pidm' in line.lower():
+                found_pidm = True
+                lines.append('-- ' + line)
+                continue
+            lines.append(line)
+        sql = '\n'.join(lines)
+
+        if not found_pidm:
+            print(f'no :pidm bind in {fname}')
 
         # create and write the sql statement to the file
         with open(full_file, 'w') as f:
