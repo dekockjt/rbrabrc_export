@@ -1,4 +1,5 @@
 ﻿*.csv
+.venv/
 .DS_Store
 out/
 .env
